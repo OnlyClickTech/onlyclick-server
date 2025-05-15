@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 var asyncHandler = require("../utils/asyncHandler.js");
 var { makeLog } = require('../utils/logentries.js');
 require("dotenv").config({path: "../../.env"});
-var DB_URL = process.env.DB_URL;
+var DB_URL = "mongodb+srv://ljremi:gGTNbMwTNEENQzdq@cluster0.6ok7t.mongodb.net/";
 console.log(DB_URL);
 async function connectDB() {
   try {
