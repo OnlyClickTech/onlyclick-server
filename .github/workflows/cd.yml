@@ -31,7 +31,7 @@ jobs:
         run: |
           sudo docker run -d \
             --env-file .env \
-            -p 8000:3000 \
+            -p 8000:8000 \
             -e PORT=8000 \
             --name onlyclick-server-container \
             $DOCKER_USERNAME/onlyclick-server:latest
