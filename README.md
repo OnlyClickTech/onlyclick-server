@@ -9,9 +9,13 @@ A Node.js/Express.js backend service for a home services marketplace platform. T
 - [Running the Application](#running-the-application)
 - [Docker Setup](#docker-setup)
 - [Project Structure](#project-structure)
+- [Key Components](#key-components)
 - [API Documentation](#api-documentation)
 - [Error Handling](#error-handling)
 - [Logging System](#logging-system)
+- [Dependencies](#dependencies)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Prerequisites
 
@@ -23,15 +27,15 @@ A Node.js/Express.js backend service for a home services marketplace platform. T
 ## Installation
 
 1. Clone the repository:
-```bash
-git clone <repository-url>
-cd onlyclick-server
-```
+    ```bash
+    git clone <repository-url>
+    cd onlyclick-server
+    ```
 
 2. Install dependencies:
-```bash
-npm install
-```
+    ```bash
+    npm install
+    ```
 
 ## Environment Setup
 
@@ -44,6 +48,8 @@ enableLogging=true
 serverLogs=./logs/server.log
 errorLogs=./logs/error.log
 ```
+
+> **Note:** If you deploy with AWS Secrets Manager, the MongoDB URI and port can be fetched automatically. See `src/aws/aws-secerets.js`.
 
 ## Running the Application
 
@@ -60,14 +66,14 @@ npm start
 ## Docker Setup
 
 1. Build the Docker image:
-```bash
-docker build -t onlyclick-server .
-```
+    ```bash
+    docker build -t onlyclick-server .
+    ```
 
 2. Run the container:
-```bash
-docker run -p 3000:3000 onlyclick-server
-```
+    ```bash
+    docker run -p 3000:3000 --env-file .env onlyclick-server
+    ```
 
 Or use Docker Compose:
 ```bash
@@ -78,72 +84,50 @@ docker-compose up
 
 ```
 onlyclick-server/
+├── index.js                  # Main application entry point
 ├── src/
-│   ├── app.js              # Main application entry point
+│   ├── aws/
+│   │   └── aws-secerets.js   # AWS Secrets Manager integration
 │   ├── database/
-│   │   └── catalog.js      # Database connection setup
+│   │   └── catalog.js        # Database connection setup
 │   └── utils/
-│       ├── ApiError.js     # Custom error handling
-│       ├── ApiResponse.js  # Standardized API responses
-│       ├── asyncHandler.js # Async error handling middleware
-│       ├── constants.js    # Application constants
-│       ├── logentries.js   # Logging utility
-│       └── validation.js   # Validation utilities
-├── dockerfile             # Docker configuration
-├── compose.yaml          # Docker Compose configuration
-└── package.json          # Project dependencies
+│       ├── ApiError.js       # Custom error handling
+│       ├── ApiResponse.js    # Standardized API responses
+│       ├── asyncHandler.js   # Async error handling middleware
+│       ├── constants.js      # Application constants
+│       ├── logentries.js     # Logging utility
+│       └── validation.js     # (Unused duplicate logging utility)
+├── dockerfile                # Docker configuration
+├── compose.yaml              # Docker Compose configuration
+└── package.json              # Project dependencies
 ```
 
-### Key Components
+## Key Components
 
-#### 1. Main Application (`app.js`)
-- Express server setup
-- Middleware configuration (CORS, JSON parsing, cookie parsing)
-- Database connection initialization
-- Basic route setup
+### 1. Main Application (`index.js`)
+- Sets up Express server, middleware (CORS, JSON parsing, cookies).
+- Connects to MongoDB using `src/database/catalog.js`.
+- Loads secrets from AWS if configured.
+- Root endpoint: `GET /` returns server status.
 
-#### 2. Database Connection (`catalog.js`)
-- MongoDB connection using Mongoose
-- Connection status logging
-- Environment-based configuration
+### 2. Database Connection (`src/database/catalog.js`)
+- Connects to MongoDB using Mongoose.
+- Uses `DB_URL` from `.env` or from AWS Secrets Manager.
+- Logs connection status using `makeLog`.
 
-#### 3. Utility Functions
+### 3. AWS Secrets Manager (`src/aws/aws-secerets.js`)
+- Fetches secrets (MongoDB URI, port) from AWS.
+- Exports `MONGO_URI` and `PORT` for use in the app.
 
-##### API Response Handler (`ApiResponse.js`)
-- Standardized API response format
-- Methods:
-  - `success()`: 200 OK responses
-  - `error()`: Custom error responses
-  - `badRequest()`: 400 Bad Request responses
-  - `unauthorized()`: 401 Unauthorized responses
+### 4. Utility Functions
 
-##### Error Handler (`ApiError.js`)
-- Custom error class for API errors
-- Integrated logging
-- Error type handling
+- **API Response Handler** (`ApiResponse.js`): Standardized API response format.
+- **Error Handler** (`ApiError.js`): Custom error class, logs errors.
+- **Async Handler** (`asyncHandler.js`): Async route handler wrapper.
+- **Constants** (`constants.js`): User roles, service categories, subcategories, status enums, OTP event types.
+- **Logging System** (`logentries.js`): Timestamped logging (IST), file or console output.
 
-##### Async Handler (`asyncHandler.js`)
-- Async route handler wrapper
-- Error catching and formatting
-- Stack trace handling
-
-##### Constants (`constants.js`)
-- User roles: user, task, admin, contractor
-- Service categories:
-  - Electrician
-  - Plumber
-  - Cleaner
-  - Carpenter
-  - Painting
-  - AC
-- Service subcategories with detailed options
-- Booking status enums
-- OTP event types
-
-##### Logging System (`logentries.js`)
-- Timestamp-based logging with IST timezone
-- File and console logging support
-- Configurable through environment variables
+> Note: `src/utils/validation.js` contains a duplicate `makeLog` function and is not used elsewhere.
 
 ## API Documentation
 
@@ -157,40 +141,19 @@ http://localhost:3000
 #### Root Endpoint
 - `GET /`
   - Returns server status
-  - Response: `{ "message": "server" }`
+  - Response: `"serverconnected"` or `"servernot connected"`
 
 ## Error Handling
 
-The application uses a standardized error handling system:
-
-1. **API Errors**
-   - Custom error class with status codes
-   - Detailed error messages
-   - Stack trace logging
-
-2. **Async Error Handling**
-   - Automatic error catching
-   - Formatted error responses
-   - Development mode stack traces
+- Uses `ApiError` for custom errors and logging.
+- `asyncHandler` wraps async routes for consistent error responses.
 
 ## Logging System
 
-The application includes a comprehensive logging system:
-
-1. **Log Types**
-   - Server logs
-   - Error logs
-   - Database connection logs
-
-2. **Log Format**
-   ```
-   [Timestamp] - [Category]: [Message]
-   ```
-
-3. **Configuration**
-   - Enable/disable through environment variables
-   - File or console output options
-   - IST timezone support
+- Logs are written to files if `enableLogging=true`, otherwise to console.
+- Log format: `[Timestamp] - [Category]: [Message]`
+- IST timezone is used for all timestamps.
+- Log files are specified by `serverLogs` and `errorLogs` in `.env`.
 
 ## Dependencies
 
@@ -200,6 +163,7 @@ The application includes a comprehensive logging system:
 - cookie-parser: Cookie parsing middleware
 - jsonwebtoken: JWT authentication
 - dotenv: Environment variable management
+- @aws-sdk/client-secrets-manager: AWS Secrets Manager integration
 
 ## Contributing
 
@@ -211,4 +175,4 @@ The application includes a comprehensive logging system:
 
 ## License
 
-ISC 
+ISC
