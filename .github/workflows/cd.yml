@@ -27,17 +27,11 @@ jobs:
             echo "No existing container to remove."
           fi
 
-
-      - name : build env file
-        run: |
-          echo "DB_URL=${DB_URL}" > .env
-          echo "DB_URL: $DB_URL"
-
       - name: Run new container
         run: |
           sudo docker run -d \
             --env-file .env \
-            -p 3000:3000 \
-            -e PORT=3000 \
+            -p 8000:3000 \
+            -e PORT=8000 \
             --name onlyclick-server-container \
             $DOCKER_USERNAME/onlyclick-server:latest

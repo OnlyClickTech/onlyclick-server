@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
-
+var database = "not connected";
 const { connectDB } = require("./src/database/catalog.js");
 
 const app = express();
@@ -23,13 +23,14 @@ app.use(
 connectDB()
   .then(() => {
     console.log("Connected to MongoDB");
+    database = "connected";
   })
   .catch((err) => {
     console.error(`MongoDB connection error: ${err}`);
   });
 
 app.get("/", (req, res) => {
-  res.json("server");
+  res.json("server" + database);
 });
 
 
