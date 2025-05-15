@@ -30,7 +30,7 @@ connectDB()
   });
 
 app.get("/", (req, res) => {
-  res.json("server" + database);
+  res.json("server");
 });
 
 
