@@ -42,8 +42,13 @@ A Node.js/Express.js backend service for a home services marketplace platform. T
 Create a `.env` file in the root directory with the following variables:
 
 ```env
-PORT=3000
-DB_URL=mongodb://localhost:27017/onlyclick
+PORT=8000
+ACCESS_TOKEN_SECRET=your_access_token_secret
+REFRESH_TOKEN_SECRET=your_refresh_token_secret
+MONGO_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/<database>
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_SERVICE_SID=your_twilio_service_sid
 enableLogging=true
 serverLogs=./logs/server.log
 errorLogs=./logs/error.log

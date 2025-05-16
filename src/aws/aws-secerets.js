@@ -1,8 +1,8 @@
-var { SecretsManagerClient, GetSecretValueCommand } = require("@aws-sdk/client-secrets-manager");
+/*
+import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 
 const client = new SecretsManagerClient({ region: "ap-southeast-1" });
-var MONGO_URI;
-var PORT;
+
 async function getSecret(secretName) {
   try {
     const command = new GetSecretValueCommand({ SecretId: secretName });
@@ -15,14 +15,5 @@ async function getSecret(secretName) {
   }
 }
 
-
-getSecret("onlyclick-server")
-    .then(secrets => {
-            MONGO_URI = secrets.MONGO_URI; 
-            PORT = secrets.PORT;
-            console.log(secrets);
-        }
-    )
-    .catch(console.error);
-
-module.exports = {MONGO_URI , PORT};
+export default getSecret;
+*/

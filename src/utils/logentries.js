@@ -1,15 +1,15 @@
-var fs = require('fs');
+import fs from "fs";
 
 async function makeLog(message, filecat, filename) {
   const now = new Date();
   const istOffset = 5.5 * 60 * 60 * 1000; // IST offset in milliseconds
   const istTime = new Date(now.getTime() + istOffset)
     .toISOString()
-    .replace('T', ' ')
-    .replace('Z', '');
+    .replace("T", " ")
+    .replace("Z", "");
   const line = `${istTime} - ${filecat}: ${message}\n`;
 
-  if (process.env.enableLogging === 'false') {
+  if (process.env.enableLogging === "false") {
     console.log(line);
     return;
   }
@@ -19,4 +19,4 @@ async function makeLog(message, filecat, filename) {
   });
 }
 
-module.exports = { makeLog };
+export { makeLog };
