@@ -19,21 +19,23 @@ async function createVerificationCheck(phoneNumber, otp) {
         code: otp,
         to: phoneNumber,
       });
-
-    // Check if the OTP is already verified
+    console.log("Verification Check Response:", verificationCheck.status);
     if (verificationCheck.status === "approved") {
       return {
-        status: "already_verified",
-        message: "The OTP has already been verified.",
+        status: "approved",
+        message: "OTP verified successfully.",
       };
     }
 
-    return verificationCheck;
+    return {
+      status: verificationCheck.status,
+      message: "OTP verification status: " + verificationCheck.status,
+    };
   } catch (error) {
-    if (error.message.includes("The requested resource")) {
+    if (error.code === 20404) {
       return {
-        status: "already_verified",
-        message: "The OTP has already been verified.",
+        status: "not_found",
+        message: "OTP session not found or already expired.",
       };
     }
 

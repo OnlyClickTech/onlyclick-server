@@ -54,7 +54,7 @@ serverLogs=./logs/server.log
 errorLogs=./logs/error.log
 ```
 
-> **Note:** If you deploy with AWS Secrets Manager, the MongoDB URI and port can be fetched automatically. See `src/aws/aws-secerets.js`.
+> **Note:** Replace placeholders with your actual credentials.
 
 ## Running the Application
 
@@ -77,7 +77,7 @@ npm start
 
 2. Run the container:
     ```bash
-    docker run -p 3000:3000 --env-file .env onlyclick-server
+    docker run -p 8000:8000 --env-file .env onlyclick-server
     ```
 
 Or use Docker Compose:
@@ -93,15 +93,30 @@ onlyclick-server/
 ├── src/
 │   ├── aws/
 │   │   └── aws-secerets.js   # AWS Secrets Manager integration
+│   ├── controllers/
+│   │   ├── auth.controller.js # Handles OTP and user authentication
+│   │   └── user.controller.js # Handles user management
 │   ├── database/
 │   │   └── catalog.js        # Database connection setup
-│   └── utils/
-│       ├── ApiError.js       # Custom error handling
-│       ├── ApiResponse.js    # Standardized API responses
-│       ├── asyncHandler.js   # Async error handling middleware
-│       ├── constants.js      # Application constants
-│       ├── logentries.js     # Logging utility
-│       └── validation.js     # (Unused duplicate logging utility)
+│   ├── middlewares/
+│   │   └── auth.middleware.js # JWT authentication middleware
+│   ├── models/
+│   │   ├── address.model.js  # Address schema
+│   │   └── users.model.js    # User schema with JWT token generation
+│   ├── otp/
+│   │   ├── otp-send.service.js # Sends OTP using Twilio
+│   │   ├── otp-verify.service.js # Verifies OTP using Twilio
+│   │   └── otp.service.js    # Twilio service creation
+│   ├── routes/
+│   │   ├── auth.routes.js    # Authentication routes
+│   │   └── user.routes.js    # User management routes
+│   ├── utils/
+│   │   ├── ApiError.js       # Custom error handling
+│   │   ├── ApiResponse.js    # Standardized API responses
+│   │   ├── asyncHandler.js   # Async error handling middleware
+│   │   ├── constants.js      # Application constants
+│   │   ├── logentries.js     # Logging utility
+│   │   └── userIdGeneration.js # Generates unique user IDs
 ├── dockerfile                # Docker configuration
 ├── compose.yaml              # Docker Compose configuration
 └── package.json              # Project dependencies
@@ -109,49 +124,140 @@ onlyclick-server/
 
 ## Key Components
 
-### 1. Main Application (`index.js`)
+### 1. Main Application ([`index.js`](index.js))
 - Sets up Express server, middleware (CORS, JSON parsing, cookies).
-- Connects to MongoDB using `src/database/catalog.js`.
+- Connects to MongoDB using [`src/database/catalog.js`](src/database/catalog.js).
 - Loads secrets from AWS if configured.
 - Root endpoint: `GET /` returns server status.
 
-### 2. Database Connection (`src/database/catalog.js`)
-- Connects to MongoDB using Mongoose.
-- Uses `DB_URL` from `.env` or from AWS Secrets Manager.
-- Logs connection status using `makeLog`.
+### 2. User Authentication
+- **OTP Sending ([`src/otp/otp-send.service.js`](src/otp/otp-send.service.js))**:
+  - Sends OTP to the user's phone number using Twilio.
+- **OTP Verification ([`src/otp/otp-verify.service.js`](src/otp/otp-verify.service.js))**:
+  - Verifies the OTP and checks if it has already been verified.
+- **JWT Token Generation ([`src/models/users.model.js`](src/models/users.model.js))**:
+  - Generates access and refresh tokens for authenticated users.
 
-### 3. AWS Secrets Manager (`src/aws/aws-secerets.js`)
-- Fetches secrets (MongoDB URI, port) from AWS.
-- Exports `MONGO_URI` and `PORT` for use in the app.
+### 3. User Management
+- **Update User ([`src/controllers/user.controller.js`](src/controllers/user.controller.js))**:
+  - Updates user details like name and phone number.
+- **Update User Address ([`src/controllers/user.controller.js`](src/controllers/user.controller.js))**:
+  - Updates the user's address.
+- **Get User ([`src/controllers/user.controller.js`](src/controllers/user.controller.js))**:
+  - Fetches user details based on the authenticated user's ID.
 
 ### 4. Utility Functions
-
-- **API Response Handler** (`ApiResponse.js`): Standardized API response format.
-- **Error Handler** (`ApiError.js`): Custom error class, logs errors.
-- **Async Handler** (`asyncHandler.js`): Async route handler wrapper.
-- **Constants** (`constants.js`): User roles, service categories, subcategories, status enums, OTP event types.
-- **Logging System** (`logentries.js`): Timestamped logging (IST), file or console output.
-
-> Note: `src/utils/validation.js` contains a duplicate `makeLog` function and is not used elsewhere.
+- **API Response Handler** ([`src/utils/ApiResponse.js`](src/utils/ApiResponse.js)): Standardized API response format.
+- **Error Handler** ([`src/utils/ApiError.js`](src/utils/ApiError.js)): Custom error class, logs errors.
+- **Async Handler** ([`src/utils/asyncHandler.js`](src/utils/asyncHandler.js)): Async route handler wrapper.
+- **Constants** ([`src/utils/constants.js`](src/utils/constants.js)): User roles, service categories, subcategories, status enums, OTP event types.
+- **Logging System** ([`src/utils/logentries.js`](src/utils/logentries.js)): Timestamped logging (IST), file or console output.
+- **Unique User ID Generator** ([`src/utils/userIdGeneration.js`](src/utils/userIdGeneration.js)): Generates unique user IDs.
 
 ## API Documentation
 
 ### Base URL
 ```
-http://localhost:3000
+http://localhost:8000
 ```
 
 ### Endpoints
 
-#### Root Endpoint
-- `GET /`
-  - Returns server status
-  - Response: `"serverconnected"` or `"servernot connected"`
+#### Authentication Routes
+- **Send OTP**:
+  - `POST /api/auth/send-otp`
+  - Request Body:
+    ```json
+    {
+      "phoneNumber": "+1234567890"
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "statusCode": 200,
+      "message": "OTP sent successfully"
+    }
+    ```
+
+- **Verify OTP**:
+  - `POST /api/auth/verify-otp`
+  - Request Body:
+    ```json
+    {
+      "phoneNumber": "+1234567890",
+      "code": "123456"
+    }
+    ```
+  - Response (Success):
+    ```json
+    {
+      "statusCode": 200,
+      "message": "Logged in successfully",
+      "data": {
+        "accessToken": "your_access_token",
+        "refreshToken": "your_refresh_token",
+        "user": { ... }
+      }
+    }
+    ```
+
+#### User Routes
+- **Get User**:
+  - `GET /api/user/get-user`
+  - Requires `Authorization` header with a valid JWT token.
+  - Response:
+    ```json
+    {
+      "statusCode": 200,
+      "message": "User fetched successfully",
+      "user": { ... }
+    }
+    ```
+
+- **Update User**:
+  - `PUT /api/user/update-user`
+  - Requires `Authorization` header with a valid JWT token.
+  - Request Body:
+    ```json
+    {
+      "name": "John Doe",
+      "phoneNumber": "+1234567890"
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "statusCode": 200,
+      "message": "User updated successfully",
+      "user": { ... }
+    }
+    ```
+
+- **Update User Address**:
+  - `PUT /api/user/update-user-address`
+  - Requires `Authorization` header with a valid JWT token.
+  - Request Body:
+    ```json
+    {
+      "address1": "123 Main St",
+      "address2": "Apt 4B",
+      "address3": "New York, NY"
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "statusCode": 200,
+      "message": "User address updated successfully",
+      "user": { ... }
+    }
+    ```
 
 ## Error Handling
 
-- Uses `ApiError` for custom errors and logging.
-- `asyncHandler` wraps async routes for consistent error responses.
+- Uses [`ApiError`](src/utils/ApiError.js) for custom errors and logging.
+- [`asyncHandler`](src/utils/asyncHandler.js) wraps async routes for consistent error responses.
 
 ## Logging System
 
@@ -168,6 +274,7 @@ http://localhost:3000
 - cookie-parser: Cookie parsing middleware
 - jsonwebtoken: JWT authentication
 - dotenv: Environment variable management
+- twilio: Twilio API integration
 - @aws-sdk/client-secrets-manager: AWS Secrets Manager integration
 
 ## Contributing

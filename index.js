@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import { connectDB } from "./src/database/catalog.js";
 //import getSecret from "./src/aws/aws-secerets.js";
 import authRoutes from "./src/routes/auth.routes.js";
+import userRoutes from "./src/routes/user.routes.js";
 dotenv.config({ path: "../.env" });
 
 const app = express();
@@ -15,7 +16,6 @@ let PORT;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use('/api/auth', authRoutes);
 app.use(
   cors({
     origin: "*",
@@ -24,6 +24,8 @@ app.use(
   })
 );
 
+app.use('/api/auth', authRoutes);
+app.use("/api/user" , userRoutes);
 //getSecret("onlyclick-server")
 //  .then((secrets) => {
 //    PORT = secrets.PORT;
