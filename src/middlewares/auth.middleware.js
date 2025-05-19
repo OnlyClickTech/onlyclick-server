@@ -11,7 +11,9 @@ const authenticateUser = asyncHandler(async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return next(new ApiError("Authorization token missing", 401));
+    return ApiResponse.error(res, 401, {
+      message: "Authorization header is missing or invalid",
+    });
   }
 
   const token = authHeader.split(" ")[1];
@@ -22,7 +24,9 @@ const authenticateUser = asyncHandler(async (req, res, next) => {
     const userId = decoded?.userId;
 
     if (!userId) {
-      return next(new ApiError("Invalid token payload", 401));
+      return ApiResponse.error(res, 401, {
+        message: "Invalid token",
+      });
     }
 
     const user = await userModel.findOne({ userId });

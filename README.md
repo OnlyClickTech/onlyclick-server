@@ -1,6 +1,6 @@
 # OnlyClick Server
 
-A Node.js/Express.js backend service for a home services marketplace platform. This server handles service bookings, user management, and various home service categories like electrical work, plumbing, cleaning, etc.
+A Node.js/Express.js backend service for a home services marketplace platform. This server handles service bookings, user management, OTP verification, and various home service categories like electrical work, plumbing, cleaning, etc.
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
@@ -11,11 +11,14 @@ A Node.js/Express.js backend service for a home services marketplace platform. T
 - [Project Structure](#project-structure)
 - [Key Components](#key-components)
 - [API Documentation](#api-documentation)
+- [Postman API Collection](#postman-api-collection)
 - [Error Handling](#error-handling)
 - [Logging System](#logging-system)
 - [Dependencies](#dependencies)
 - [Contributing](#contributing)
 - [License](#license)
+
+---
 
 ## Prerequisites
 
@@ -23,6 +26,8 @@ A Node.js/Express.js backend service for a home services marketplace platform. T
 - MongoDB
 - Docker (optional, for containerized deployment)
 - npm (Node Package Manager)
+
+---
 
 ## Installation
 
@@ -36,6 +41,8 @@ A Node.js/Express.js backend service for a home services marketplace platform. T
     ```bash
     npm install
     ```
+
+---
 
 ## Environment Setup
 
@@ -56,6 +63,8 @@ errorLogs=./logs/error.log
 
 > **Note:** Replace placeholders with your actual credentials.
 
+---
+
 ## Running the Application
 
 ### Development Mode
@@ -67,6 +76,8 @@ npm run dev
 ```bash
 npm start
 ```
+
+---
 
 ## Docker Setup
 
@@ -85,6 +96,8 @@ Or use Docker Compose:
 docker-compose up
 ```
 
+---
+
 ## Project Structure
 
 ```
@@ -95,32 +108,39 @@ onlyclick-server/
 │   │   └── aws-secerets.js   # AWS Secrets Manager integration
 │   ├── controllers/
 │   │   ├── auth.controller.js # Handles OTP and user authentication
-│   │   └── user.controller.js # Handles user management
+│   │   ├── user.controller.js # Handles user management
+│   │   └── booking.controller.js # Handles booking management
 │   ├── database/
 │   │   └── catalog.js        # Database connection setup
 │   ├── middlewares/
 │   │   └── auth.middleware.js # JWT authentication middleware
 │   ├── models/
 │   │   ├── address.model.js  # Address schema
-│   │   └── users.model.js    # User schema with JWT token generation
+│   │   ├── users.model.js    # User schema with JWT token generation
+│   │   └── booking.model.js  # Booking schema
 │   ├── otp/
 │   │   ├── otp-send.service.js # Sends OTP using Twilio
 │   │   ├── otp-verify.service.js # Verifies OTP using Twilio
 │   │   └── otp.service.js    # Twilio service creation
 │   ├── routes/
 │   │   ├── auth.routes.js    # Authentication routes
-│   │   └── user.routes.js    # User management routes
+│   │   ├── user.routes.js    # User management routes
+│   │   └── booking.routes.js # Booking management routes
 │   ├── utils/
 │   │   ├── ApiError.js       # Custom error handling
 │   │   ├── ApiResponse.js    # Standardized API responses
 │   │   ├── asyncHandler.js   # Async error handling middleware
 │   │   ├── constants.js      # Application constants
 │   │   ├── logentries.js     # Logging utility
+│   │   ├── bookingIdGeneration.js # Generates unique booking IDs
+│   │   ├── bookingOtpGeneration.js # Generates OTPs for bookings
 │   │   └── userIdGeneration.js # Generates unique user IDs
 ├── dockerfile                # Docker configuration
 ├── compose.yaml              # Docker Compose configuration
 └── package.json              # Project dependencies
 ```
+
+---
 
 ## Key Components
 
@@ -146,13 +166,17 @@ onlyclick-server/
 - **Get User ([`src/controllers/user.controller.js`](src/controllers/user.controller.js))**:
   - Fetches user details based on the authenticated user's ID.
 
-### 4. Utility Functions
-- **API Response Handler** ([`src/utils/ApiResponse.js`](src/utils/ApiResponse.js)): Standardized API response format.
-- **Error Handler** ([`src/utils/ApiError.js`](src/utils/ApiError.js)): Custom error class, logs errors.
-- **Async Handler** ([`src/utils/asyncHandler.js`](src/utils/asyncHandler.js)): Async route handler wrapper.
-- **Constants** ([`src/utils/constants.js`](src/utils/constants.js)): User roles, service categories, subcategories, status enums, OTP event types.
-- **Logging System** ([`src/utils/logentries.js`](src/utils/logentries.js)): Timestamped logging (IST), file or console output.
-- **Unique User ID Generator** ([`src/utils/userIdGeneration.js`](src/utils/userIdGeneration.js)): Generates unique user IDs.
+### 4. Booking Management
+- **Create Booking ([`src/controllers/booking.controller.js`](src/controllers/booking.controller.js))**:
+  - Creates a new booking with a unique booking ID and OTPs.
+- **Get Booking ([`src/controllers/booking.controller.js`](src/controllers/booking.controller.js))**:
+  - Fetches all bookings for the authenticated user.
+- **Validate Start OTP ([`src/controllers/booking.controller.js`](src/controllers/booking.controller.js))**:
+  - Validates the start OTP for a booking and updates its status to "confirmed".
+- **Validate End OTP ([`src/controllers/booking.controller.js`](src/controllers/booking.controller.js))**:
+  - Validates the end OTP for a booking and updates its status to "completed".
+
+---
 
 ## API Documentation
 
@@ -254,10 +278,89 @@ http://localhost:8000
     }
     ```
 
+#### Booking Routes
+- **Create Booking**:
+  - `POST /api/booking/create-booking`
+  - Requires `Authorization` header with a valid JWT token.
+  - Request Body:
+    ```json
+    {
+      "serviceId": "60d21b4667d0d8992e610c85",
+      "scheduledTime": "2023-10-10T10:00:00Z"
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "statusCode": 201,
+      "message": "Booking created successfully",
+      "bookingId": "BK-123456",
+      "otp": "123456"
+    }
+    ```
+
+- **Get Booking**:
+  - `GET /api/booking/get-booking`
+  - Requires `Authorization` header with a valid JWT token.
+  - Response:
+    ```json
+    {
+      "statusCode": 200,
+      "message": "Bookings fetched successfully",
+      "bookings": [ ... ]
+    }
+    ```
+
+- **Validate Start OTP**:
+  - `POST /api/booking/validate-start-otp`
+  - Requires `Authorization` header with a valid JWT token.
+  - Request Body:
+    ```json
+    {
+      "bookingId": "BK-123456",
+      "otp": "123456"
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "statusCode": 200,
+      "message": "Booking start OTP validated successfully",
+      "booking": { ... }
+    }
+    ```
+
+- **Validate End OTP**:
+  - `POST /api/booking/validate-end-otp`
+  - Requires `Authorization` header with a valid JWT token.
+  - Request Body:
+    ```json
+    {
+      "bookingId": "BK-123456",
+      "otp": "654321"
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "statusCode": 200,
+      "message": "Booking end OTP validated successfully",
+      "booking": { ... }
+    }
+    ```
+
+### Postman API Collection
+You can use the following Postman collection to test the APIs:
+[OnlyClick API Collection](https://api.postman.com/collections/27936854-d4aeef8a-8342-494c-9905-64c915509a9d?access_key=PMAT-01JVMCWA6A69XYY0P08AZQWB4P)
+
+---
+
 ## Error Handling
 
 - Uses [`ApiError`](src/utils/ApiError.js) for custom errors and logging.
 - [`asyncHandler`](src/utils/asyncHandler.js) wraps async routes for consistent error responses.
+
+---
 
 ## Logging System
 
@@ -265,6 +368,8 @@ http://localhost:8000
 - Log format: `[Timestamp] - [Category]: [Message]`
 - IST timezone is used for all timestamps.
 - Log files are specified by `serverLogs` and `errorLogs` in `.env`.
+
+---
 
 ## Dependencies
 
@@ -277,6 +382,8 @@ http://localhost:8000
 - twilio: Twilio API integration
 - @aws-sdk/client-secrets-manager: AWS Secrets Manager integration
 
+---
+
 ## Contributing
 
 1. Fork the repository
@@ -284,6 +391,8 @@ http://localhost:8000
 3. Commit your changes
 4. Push to the branch
 5. Create a Pull Request
+
+---
 
 ## License
 

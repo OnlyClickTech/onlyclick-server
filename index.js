@@ -6,6 +6,7 @@ import { connectDB } from "./src/database/catalog.js";
 //import getSecret from "./src/aws/aws-secerets.js";
 import authRoutes from "./src/routes/auth.routes.js";
 import userRoutes from "./src/routes/user.routes.js";
+import bookingRoutes from "./src/routes/booking.routes.js";
 dotenv.config({ path: "../.env" });
 
 const app = express();
@@ -26,6 +27,7 @@ app.use(
 
 app.use('/api/auth', authRoutes);
 app.use("/api/user" , userRoutes);
+app.use("/api/booking" , bookingRoutes);
 //getSecret("onlyclick-server")
 //  .then((secrets) => {
 //    PORT = secrets.PORT;
