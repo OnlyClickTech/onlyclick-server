@@ -41,6 +41,11 @@ var bookingSchema = new mongoose.Schema({
         required: true,
         default: null,
     },
+    price : {
+        type: Number,
+        required: true,
+        default: null,
+    }
 });
 
 var bookingModel = mongoose.model("Booking" , bookingSchema);

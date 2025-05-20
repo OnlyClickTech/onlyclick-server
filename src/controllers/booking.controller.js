@@ -8,7 +8,7 @@ import { startOtpGeneration , endOtpGeneration} from "../utils/bookingOtpGenerat
 
 var createBooking = asyncHandler(async (req, res) => {
     var userId = req.user.userId;
-    var {category , subcategory} = req.body;
+    var {category , subcategory , price} = req.body;
     var bookingId = generateUniqueBookingId();
     var bookingDate = new Date();
     var status = "pending";
@@ -34,6 +34,7 @@ var createBooking = asyncHandler(async (req, res) => {
                 subCategory: subcategory,
                 startOtp: startOtpGeneration(),
                 endOtp: endOtpGeneration(),
+                price: price
             })
             if(newbooking){
                 return ApiResponse.success(res, "booking created successfully", newbooking);
