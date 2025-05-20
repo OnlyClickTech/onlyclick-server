@@ -28,11 +28,14 @@ var createService = asyncHandler(async (req, res) => {
         return ApiResponse.error(res, 400, "duration is required");
     }
 
-    var service = await serviceModel.findOne({ category: category });
-    if (service) {
+    var existingService = await serviceModel.findOne({ 
+        category: category,
+        subCategory: subCategory 
+    });
+    if (existingService) {
         return ApiResponse.error(res, 400, "Service already exists");
     }
-    if (!service) {
+    if (!existingService) {
         var newService = await serviceModel.create({
             category: category,
             subCategory: subCategory,

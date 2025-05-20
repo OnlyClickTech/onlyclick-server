@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { subCategory } from "../utils/constants";
 const serviceSchema = new mongoose.Schema({
     category: {
     type: String,
@@ -25,3 +24,6 @@ const serviceSchema = new mongoose.Schema({
     required: true,
     },
 });
+
+const serviceModel = mongoose.model("services", serviceSchema);
+export default serviceModel;
