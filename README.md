@@ -3,6 +3,7 @@
 A Node.js/Express.js backend service for a home services marketplace platform. This server handles service bookings, user management, OTP verification, and various home service categories like electrical work, plumbing, cleaning, etc.
 
 ## Table of Contents
+
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Environment Setup](#environment-setup)
@@ -32,15 +33,16 @@ A Node.js/Express.js backend service for a home services marketplace platform. T
 ## Installation
 
 1. Clone the repository:
-    ```bash
-    git clone <repository-url>
-    cd onlyclick-server
-    ```
+
+   ```bash
+   git clone <repository-url>
+   cd onlyclick-server
+   ```
 
 2. Install dependencies:
-    ```bash
-    npm install
-    ```
+   ```bash
+   npm install
+   ```
 
 ---
 
@@ -68,11 +70,13 @@ errorLogs=./logs/error.log
 ## Running the Application
 
 ### Development Mode
+
 ```bash
 npm run dev
 ```
 
 ### Production Mode
+
 ```bash
 npm start
 ```
@@ -82,16 +86,18 @@ npm start
 ## Docker Setup
 
 1. Build the Docker image:
-    ```bash
-    docker build -t onlyclick-server .
-    ```
+
+   ```bash
+   docker build -t onlyclick-server .
+   ```
 
 2. Run the container:
-    ```bash
-    docker run -p 8000:8000 --env-file .env onlyclick-server
-    ```
+   ```bash
+   docker run -p 8000:8000 --env-file .env onlyclick-server
+   ```
 
 Or use Docker Compose:
+
 ```bash
 docker-compose up
 ```
@@ -109,6 +115,7 @@ onlyclick-server/
 │   ├── controllers/
 │   │   ├── auth.controller.js # Handles OTP and user authentication
 │   │   ├── user.controller.js # Handles user management
+│   │   ├── service.controller.js # Handles service management
 │   │   └── booking.controller.js # Handles booking management
 │   ├── database/
 │   │   └── catalog.js        # Database connection setup
@@ -117,6 +124,7 @@ onlyclick-server/
 │   ├── models/
 │   │   ├── address.model.js  # Address schema
 │   │   ├── users.model.js    # User schema with JWT token generation
+│   │   ├── service.model.js  #Service schema
 │   │   └── booking.model.js  # Booking schema
 │   ├── otp/
 │   │   ├── otp-send.service.js # Sends OTP using Twilio
@@ -126,6 +134,7 @@ onlyclick-server/
 │   │   ├── auth.routes.js    # Authentication routes
 │   │   ├── user.routes.js    # User management routes
 │   │   └── booking.routes.js # Booking management routes
+│   │   ├── service.routes.js # Service management routes
 │   ├── utils/
 │   │   ├── ApiError.js       # Custom error handling
 │   │   ├── ApiResponse.js    # Standardized API responses
@@ -145,12 +154,14 @@ onlyclick-server/
 ## Key Components
 
 ### 1. Main Application ([`index.js`](index.js))
+
 - Sets up Express server, middleware (CORS, JSON parsing, cookies).
 - Connects to MongoDB using [`src/database/catalog.js`](src/database/catalog.js).
 - Loads secrets from AWS if configured.
 - Root endpoint: `GET /` returns server status.
 
 ### 2. User Authentication
+
 - **OTP Sending ([`src/otp/otp-send.service.js`](src/otp/otp-send.service.js))**:
   - Sends OTP to the user's phone number using Twilio.
 - **OTP Verification ([`src/otp/otp-verify.service.js`](src/otp/otp-verify.service.js))**:
@@ -159,6 +170,7 @@ onlyclick-server/
   - Generates access and refresh tokens for authenticated users.
 
 ### 3. User Management
+
 - **Update User ([`src/controllers/user.controller.js`](src/controllers/user.controller.js))**:
   - Updates user details like name and phone number.
 - **Update User Address ([`src/controllers/user.controller.js`](src/controllers/user.controller.js))**:
@@ -167,6 +179,7 @@ onlyclick-server/
   - Fetches user details based on the authenticated user's ID.
 
 ### 4. Booking Management
+
 - **Create Booking ([`src/controllers/booking.controller.js`](src/controllers/booking.controller.js))**:
   - Creates a new booking with a unique booking ID and OTPs.
 - **Get Booking ([`src/controllers/booking.controller.js`](src/controllers/booking.controller.js))**:
@@ -176,11 +189,23 @@ onlyclick-server/
 - **Validate End OTP ([`src/controllers/booking.controller.js`](src/controllers/booking.controller.js))**:
   - Validates the end OTP for a booking and updates its status to "completed".
 
+### 4. Service Management
+
+- **Create Service ([`src/controllers/service.controller.js`](src/controllers/service.controller.js))**:
+  - Creates a service with details such as category, subcategory, price and duration.
+- **Update Service ([`src/controllers/service.controller.js`](src/controllers/uservice.controller.js))**:
+  - Updates service details.
+- **Edit Service ([`src/controllers/service.controller.js`](src/controllers/service.controller.js))**:
+  - Edits service details.
+- **Delete Service ([`src/controllers/service.controller.js`](src/controllers/service.controller.js))**:
+  - Deletes a service.
+
 ---
 
 ## API Documentation
 
 ### Base URL
+
 ```
 http://localhost:8000
 ```
@@ -188,7 +213,9 @@ http://localhost:8000
 ### Endpoints
 
 #### Authentication Routes
+
 - **Send OTP**:
+
   - `POST /api/auth/send-otp`
   - Request Body:
     ```json
@@ -227,7 +254,9 @@ http://localhost:8000
     ```
 
 #### User Routes
+
 - **Get User**:
+
   - `GET /api/user/get-user`
   - Requires `Authorization` header with a valid JWT token.
   - Response:
@@ -240,6 +269,7 @@ http://localhost:8000
     ```
 
 - **Update User**:
+
   - `PUT /api/user/update-user`
   - Requires `Authorization` header with a valid JWT token.
   - Request Body:
@@ -278,8 +308,107 @@ http://localhost:8000
     }
     ```
 
+#### Service Routes
+
+- **Create Service**:
+
+  - `POST /api/service/create-service`
+  - Requires `Authorization` header with a valid JWT token.
+  - Request Body:
+    ```json
+    {
+      "category": "Cleaning",
+      "subCategory": "Home Cleaning",
+      "description": "Complete home cleaning service",
+      "price": 1200,
+      "duration": 4
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "statusCode": 200,
+      "message": "Service created successfully",
+      "data": {
+        "_id": "65f4a8b7c8e9f4b9d8f7e6c5",
+        "category": "Cleaning",
+        "subCategory": "Home Cleaning",
+        "description": "Complete home cleaning service",
+        "price": 1200,
+        "duration": 4,
+        "__v": 0
+      }
+    }
+    ```
+
+- **Get ALL services**:
+
+  - `GET /api/services/get-service`
+  - Requires `Authorization` header with a valid JWT token.
+  - Response:
+    ```json
+    {
+      "statusCode": 200,
+      "message": "Service fetched successfully",
+      "data": [ ... ]
+    }
+    ```
+
+- **Update Service**:
+
+  - `PUT /api/service/update-service/:id`
+  - Requires `Authorization` header with a valid JWT token.
+  - Request Body:
+    ```json
+    {
+      "category": "Deep Cleaning",
+      "subCategory": "Home Deep Cleaning",
+      "description": "Complete deep cleaning service",
+      "price": 1500,
+      "duration": 6
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "statusCode": 200,
+      "message": "Service updated successfully",
+      "data": {
+        "_id": "65f4a8b7c8e9f4b9d8f7e6c5",
+        "category": "Deep Cleaning",
+        "subCategory": "Home Deep Cleaning",
+        "description": "Complete deep cleaning service",
+        "price": 1500,
+        "duration": 6,
+        "__v": 0
+      }
+    }
+    ```
+
+- **Delete Service**:
+  - `DELETE /api/service/delete-service/:id`
+  - Requires `Authorization` header with a valid JWT token.
+  - Request Body:
+    ```json
+    {
+      "statusCode": 200,
+      "message": "Service deleted successfully",
+      "data": {
+        "_id": "65f4a8b7c8e9f4b9d8f7e6c5",
+        "category": "Deep Cleaning",
+        "subCategory": "Home Deep Cleaning",
+        "description": "Complete deep cleaning service",
+        "price": 1500,
+        "duration": 6,
+        "__v": 0
+      }
+    }
+    ```
+
 #### Booking Routes
+
 - **Create Booking**:
+
   - `POST /api/booking/create-booking`
   - Requires `Authorization` header with a valid JWT token.
   - Request Body:
@@ -300,6 +429,7 @@ http://localhost:8000
     ```
 
 - **Get Booking**:
+
   - `GET /api/booking/get-booking`
   - Requires `Authorization` header with a valid JWT token.
   - Response:
@@ -312,6 +442,7 @@ http://localhost:8000
     ```
 
 - **Validate Start OTP**:
+
   - `POST /api/booking/validate-start-otp`
   - Requires `Authorization` header with a valid JWT token.
   - Request Body:
@@ -350,6 +481,7 @@ http://localhost:8000
     ```
 
 ### Postman API Collection
+
 You can use the following Postman collection to test the APIs:
 [OnlyClick API Collection](https://api.postman.com/collections/27936854-d4aeef8a-8342-494c-9905-64c915509a9d?access_key=PMAT-01JVMCWA6A69XYY0P08AZQWB4P)
 
