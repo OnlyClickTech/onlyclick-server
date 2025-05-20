@@ -5,7 +5,7 @@ import ApiResponse from '../utils/ApiResponse.js';
 import ApiError from '../utils/ApiError.js';
 
 var createService = asyncHandler(async (req, res) => {
-    var { category, subCategory, description, price, duration } = req.body;
+    var { serviceId , category, subCategory, description, price, duration } = req.body;
     console.log("category", category);
     console.log("subcategory", subCategory);
     console.log("description", description);
@@ -37,6 +37,7 @@ var createService = asyncHandler(async (req, res) => {
     }
     if (!existingService) {
         var newService = await serviceModel.create({
+            serviceId: serviceId,
             category: category,
             subCategory: subCategory,
             description: description,
@@ -63,8 +64,7 @@ var getService = asyncHandler(async (req, res) => {
 })
 
 var updateService = asyncHandler(async (req, res) => {
-    var { category, subCategory, description, price, duration } = req.body;
-    var serviceId = req.params.id;
+    var { serviceId , category, subCategory, description, price, duration } = req.body;
     console.log("category", category);
     console.log("subcategory", subCategory);
     console.log("description", description);
@@ -89,12 +89,12 @@ var updateService = asyncHandler(async (req, res) => {
         return ApiResponse.error(res, 400, "duration is required");
     }
 
-    var service = await serviceModel.findById(serviceId);
+    var service = await serviceModel.findOne({serviceId : serviceId});
     if (!service) {
         return ApiResponse.error(res, 404, "Service not found");
     }
     if (service) {
-        var updatedService = await serviceModel.findByIdAndUpdate(serviceId,
+        var updatedService = await serviceModel.findOneAndUpdate({serviceId : serviceId},
             {
                 category: category,
                 subCategory: subCategory,
@@ -113,18 +113,18 @@ var updateService = asyncHandler(async (req, res) => {
 })
 
 var deleteService = asyncHandler(async (req, res) => {
-    var serviceId = req.params.id;
+    var serviceId = req.body;
     console.log("serviceId", serviceId);
     if (!serviceId) {
         return ApiResponse.error(res, 400, "serviceId is required");
     }
     if (serviceId) {
-        var service = await serviceModel.findById(serviceId);
+        var service = await serviceModel.findOne(serviceId);
         if (!service) {
             return ApiResponse.error(res, 404, "Service not found");
         }
         if (service) {
-            var deletedService = await serviceModel.findByIdAndDelete(serviceId);
+            var deletedService = await serviceModel.findOneAndDelete(serviceId);
             if (deletedService) {
                 return ApiResponse.success(res, "Service deleted successfully", deletedService);
             }

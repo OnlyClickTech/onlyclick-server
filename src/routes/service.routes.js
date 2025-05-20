@@ -5,8 +5,8 @@ import authenticateUser from '../middlewares/auth.middleware.js';
 
 var router = express.Router();
 
-router.post("/create-service" , authenticateUser , createService);
-router.get("/get-service" , authenticateUser , getService);
-router.put("/update-service" , authenticateUser , updateService);
-router.delete("/delete-service" , authenticateUser , deleteService);
+router.post("/create-service" , createService);
+router.get("/get-service" , getService);
+router.put("/update-service" , updateService);
+router.delete("/delete-service" , deleteService);
 export default router;

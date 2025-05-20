@@ -1,27 +1,32 @@
 import mongoose from "mongoose";
 const serviceSchema = new mongoose.Schema({
+    serviceId : {
+        type: String,
+        trim: true,
+        required: true,
+    },
     category: {
-    type: String,
-    trim: true,
-    required: true,
+        type: String,
+        trim: true,
+        required: true,
     },
     subCategory: {
-    type: String,
-    trim: true,
-    required: true,
+        type: String,
+        trim: true,
+        required: true,
     },
     description: {
-    type: String,
-    trim: true,
-    default: null,
+        type: String,
+        trim: true,
+        default: null,
     },
     price: {
-    type: Number,
-    required: true,
+        type: Number,
+        required: true,
     },
     duration: {
-    type: Number,
-    required: true,
+        type: Number,
+        required: true,
     },
 });
 
