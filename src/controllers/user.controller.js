@@ -3,7 +3,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/ApiResponse.js";
 
 export const updateUser = asyncHandler(async (req, res) => {
-    const { name, phoneNumber } = req.body;
+    const { name, phoneNumber  , email} = req.body;
     const userId = req.user.userId; // coming from your middleware
 
     if (!name && !phoneNumber) {
@@ -18,6 +18,9 @@ export const updateUser = asyncHandler(async (req, res) => {
     }
     if (phoneNumber) {
         updateData.phoneNumber = phoneNumber;
+    }
+    if(email){
+        updateData.email = email;
     }
 
     const user = await userModel.findOneAndUpdate(
