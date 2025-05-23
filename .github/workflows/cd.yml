@@ -30,7 +30,6 @@ jobs:
       - name: Run new container
         run: |
           sudo docker run -d \
-            --env-file .env \
             -p 3000:3000 \
             -e PORT=3000 \
             --name onlyclick-server-container \
