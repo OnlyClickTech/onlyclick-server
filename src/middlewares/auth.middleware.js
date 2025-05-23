@@ -4,6 +4,7 @@ import ApiError from "../utils/ApiError.js";
 import userModel from "../models/users.model.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import secret from "../aws/aws-secerets.js";
 
 dotenv.config({ path: "../../.env" });
 
@@ -21,12 +22,12 @@ const authenticateUser = asyncHandler(async (req, res, next) => {
   let decoded;
   try {
     // Try access token
-    decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    decoded = jwt.verify(token, secret.ACCESS_TOKEN_SECRET);
   } catch (error) {
     // If access token fails, try refresh token
     if (error.name === "TokenExpiredError" || error.name === "JsonWebTokenError") {
       try {
-        decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+        decoded = jwt.verify(token, secret.REFRESH_TOKEN_SECRET);
       } catch (refreshError) {
         return ApiResponse.error(res, 401, {
           message: "Invalid or expired token",

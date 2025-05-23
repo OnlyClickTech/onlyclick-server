@@ -1,18 +1,19 @@
 import twilio from "twilio";
 import dotenv from "dotenv";
 import createService from "./otp.service.js";
+import secret from "../aws/aws-secerets.js";
 dotenv.config({path: "../../.env"});
 
 var createOtpService = " ";
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-var serviceId = process.env.TWILIO_SERVICE_SID;
+const accountSid = secret.TWILIO_ACCOUNT_SID;
+const authToken = secret.TWILIO_AUTH_TOKEN;
+var serviceId = secret.TWILIO_SERVICE_SID;
 const client = twilio(accountSid, authToken);
 
 async function createVerification(phoneNumber) {
   if(createOtpService){
     const verification = await client.verify.v2
-      .services("VA703956fc9e53c334936a47c5018a7b9f")
+      .services(secret.TWILIO_SERVICE_SID)
       .verifications.create({
         channel: "sms",
         to: `${phoneNumber}`,

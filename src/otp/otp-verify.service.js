@@ -1,10 +1,11 @@
 import twilio from "twilio";
 import dotenv from "dotenv";
+import secret from "../aws/aws-secerets.js";
 dotenv.config({ path: "../../.env" });
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const serviceId = process.env.TWILIO_SERVICE_SID;
+const accountSid = secret.TWILIO_ACCOUNT_SID;
+const authToken = secret.TWILIO_AUTH_TOKEN;
+const serviceId = secret.TWILIO_SERVICE_SID;
 const client = twilio(accountSid, authToken);
 
 async function createVerificationCheck(phoneNumber, otp) {

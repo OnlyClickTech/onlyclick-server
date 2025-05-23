@@ -2,6 +2,8 @@
 
 A Node.js/Express.js backend service for a home services marketplace platform. This server handles service bookings, user management, OTP verification, and various home service categories like electrical work, plumbing, cleaning, etc.
 
+---
+
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
@@ -124,7 +126,7 @@ onlyclick-server/
 │   ├── models/
 │   │   ├── address.model.js  # Address schema
 │   │   ├── users.model.js    # User schema with JWT token generation
-│   │   ├── service.model.js  #Service schema
+│   │   ├── service.model.js  # Service schema
 │   │   └── booking.model.js  # Booking schema
 │   ├── otp/
 │   │   ├── otp-send.service.js # Sends OTP using Twilio
@@ -189,14 +191,12 @@ onlyclick-server/
 - **Validate End OTP ([`src/controllers/booking.controller.js`](src/controllers/booking.controller.js))**:
   - Validates the end OTP for a booking and updates its status to "completed".
 
-### 4. Service Management
+### 5. Service Management
 
 - **Create Service ([`src/controllers/service.controller.js`](src/controllers/service.controller.js))**:
-  - Creates a service with details such as category, subcategory, price and duration.
-- **Update Service ([`src/controllers/service.controller.js`](src/controllers/uservice.controller.js))**:
+  - Creates a service with details such as category, subcategory, price, and duration.
+- **Update Service ([`src/controllers/service.controller.js`](src/controllers/service.controller.js))**:
   - Updates service details.
-- **Edit Service ([`src/controllers/service.controller.js`](src/controllers/service.controller.js))**:
-  - Edits service details.
 - **Delete Service ([`src/controllers/service.controller.js`](src/controllers/service.controller.js))**:
   - Deletes a service.
 
@@ -313,7 +313,6 @@ http://localhost:8000
 - **Create Service**:
 
   - `POST /api/service/create-service`
-  - Requires `Authorization` header with a valid JWT token.
   - Request Body:
     ```json
     {
@@ -329,38 +328,29 @@ http://localhost:8000
     {
       "statusCode": 200,
       "message": "Service created successfully",
-      "data": {
-        "_id": "65f4a8b7c8e9f4b9d8f7e6c5",
-        "category": "Cleaning",
-        "subCategory": "Home Cleaning",
-        "description": "Complete home cleaning service",
-        "price": 1200,
-        "duration": 4,
-        "__v": 0
-      }
+      "data": { ... }
     }
     ```
 
-- **Get ALL services**:
+- **Get All Services**:
 
-  - `GET /api/services/get-service`
-  - Requires `Authorization` header with a valid JWT token.
+  - `GET /api/service/get-service`
   - Response:
     ```json
     {
       "statusCode": 200,
-      "message": "Service fetched successfully",
+      "message": "Services fetched successfully",
       "data": [ ... ]
     }
     ```
 
 - **Update Service**:
 
-  - `PUT /api/service/update-service/:id`
-  - Requires `Authorization` header with a valid JWT token.
+  - `PUT /api/service/update-service`
   - Request Body:
     ```json
     {
+      "serviceId": "12345",
       "category": "Deep Cleaning",
       "subCategory": "Home Deep Cleaning",
       "description": "Complete deep cleaning service",
@@ -373,35 +363,24 @@ http://localhost:8000
     {
       "statusCode": 200,
       "message": "Service updated successfully",
-      "data": {
-        "_id": "65f4a8b7c8e9f4b9d8f7e6c5",
-        "category": "Deep Cleaning",
-        "subCategory": "Home Deep Cleaning",
-        "description": "Complete deep cleaning service",
-        "price": 1500,
-        "duration": 6,
-        "__v": 0
-      }
+      "data": { ... }
     }
     ```
 
 - **Delete Service**:
-  - `DELETE /api/service/delete-service/:id`
-  - Requires `Authorization` header with a valid JWT token.
+  - `DELETE /api/service/delete-service`
   - Request Body:
+    ```json
+    {
+      "serviceId": "12345"
+    }
+    ```
+  - Response:
     ```json
     {
       "statusCode": 200,
       "message": "Service deleted successfully",
-      "data": {
-        "_id": "65f4a8b7c8e9f4b9d8f7e6c5",
-        "category": "Deep Cleaning",
-        "subCategory": "Home Deep Cleaning",
-        "description": "Complete deep cleaning service",
-        "price": 1500,
-        "duration": 6,
-        "__v": 0
-      }
+      "data": { ... }
     }
     ```
 
@@ -410,12 +389,12 @@ http://localhost:8000
 - **Create Booking**:
 
   - `POST /api/booking/create-booking`
-  - Requires `Authorization` header with a valid JWT token.
   - Request Body:
     ```json
     {
-      "serviceId": "60d21b4667d0d8992e610c85",
-      "scheduledTime": "2023-10-10T10:00:00Z"
+      "category": "Cleaning",
+      "subCategory": "Home Cleaning",
+      "price": 1200
     }
     ```
   - Response:
@@ -423,64 +402,62 @@ http://localhost:8000
     {
       "statusCode": 201,
       "message": "Booking created successfully",
-      "bookingId": "BK-123456",
-      "otp": "123456"
+      "data": { ... }
     }
     ```
 
 - **Get Booking**:
 
   - `GET /api/booking/get-booking`
-  - Requires `Authorization` header with a valid JWT token.
   - Response:
     ```json
     {
       "statusCode": 200,
       "message": "Bookings fetched successfully",
-      "bookings": [ ... ]
+      "data": [ ... ]
     }
     ```
 
 - **Validate Start OTP**:
 
-  - `POST /api/booking/validate-start-otp`
-  - Requires `Authorization` header with a valid JWT token.
+  - `PUT /api/booking/validate-startotp`
   - Request Body:
     ```json
     {
-      "bookingId": "BK-123456",
-      "otp": "123456"
+      "bookingId": "BK12345",
+      "startOtp": "123456"
     }
     ```
   - Response:
     ```json
     {
       "statusCode": 200,
-      "message": "Booking start OTP validated successfully",
-      "booking": { ... }
+      "message": "Start OTP validated successfully",
+      "data": { ... }
     }
     ```
 
 - **Validate End OTP**:
-  - `POST /api/booking/validate-end-otp`
-  - Requires `Authorization` header with a valid JWT token.
+  - `PUT /api/booking/validate-endotp`
   - Request Body:
     ```json
     {
-      "bookingId": "BK-123456",
-      "otp": "654321"
+      "bookingId": "BK12345",
+      "endOtp": "654321"
     }
     ```
   - Response:
     ```json
     {
       "statusCode": 200,
-      "message": "Booking end OTP validated successfully",
-      "booking": { ... }
+      "message": "End OTP validated successfully",
+      "data": { ... }
     }
     ```
 
-### Postman API Collection
+---
+
+## Postman API Collection
 
 You can use the following Postman collection to test the APIs:
 [OnlyClick API Collection](https://api.postman.com/collections/27936854-d4aeef8a-8342-494c-9905-64c915509a9d?access_key=PMAT-01JVMCWA6A69XYY0P08AZQWB4P)

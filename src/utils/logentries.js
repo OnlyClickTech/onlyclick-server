@@ -1,5 +1,5 @@
 import fs from "fs";
-
+import secret from "../aws/aws-secerets.js";
 async function makeLog(message, filecat, filename) {
   const now = new Date();
   const istOffset = 5.5 * 60 * 60 * 1000; // IST offset in milliseconds
@@ -9,7 +9,7 @@ async function makeLog(message, filecat, filename) {
     .replace("Z", "");
   const line = `${istTime} - ${filecat}: ${message}\n`;
 
-  if (process.env.enableLogging === "false") {
+  if (secret.enableLogging === "false") {
     console.log(line);
     return;
   }
