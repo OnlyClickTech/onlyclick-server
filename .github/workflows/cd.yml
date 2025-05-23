@@ -12,8 +12,6 @@ jobs:
     environment : production
     env:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DB_URL : ${{ vars.DB_URL }}
-
     steps:
       - name: Pull Image from Docker Hub
         run: sudo docker pull $DOCKER_USERNAME/onlyclick-server:latest
