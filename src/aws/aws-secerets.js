@@ -19,15 +19,11 @@ try {
       VersionStage: "AWSCURRENT", // VersionStage defaults to AWSCURRENT if unspecified
     })
   );
+  var secret = response.SecretString;
 } catch (error) {
-  // For a list of exceptions thrown, see
-  // https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
   throw error;
 }
-
-var secret = response.SecretString;
 console.log(secret);
-var secret = JSON.parse(secret);
+secret = JSON.parse(secret);
 console.log(secret);
 export default secret;
-// Your code goes here
