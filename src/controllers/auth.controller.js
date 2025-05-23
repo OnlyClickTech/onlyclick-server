@@ -2,7 +2,7 @@ import userModel from "../models/users.model.js";
 import createVerification from "../otp/otp-send.service.js";
 import createVerificationCheck from "../otp/otp-verify.service.js";
 import asyncHandler from "../utils/asyncHandler.js";
-import ApiResponse from "../utils/apiResponse.js";
+import ApiResponse from "../utils/ApiResponse.js";
 import generateUniqueUserId from "../utils/userIdGeneration.js";
 import jwt from "jsonwebtoken";
 
