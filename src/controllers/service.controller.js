@@ -3,6 +3,7 @@ import serviceModel from '../models/service.model.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import ApiError from '../utils/ApiError.js';
+import { calculateAverageRating } from '../utils/servicereview.js';
 
 var createService = asyncHandler(async (req, res) => {
     var { serviceId , category, subCategory, description, price, duration } = req.body;
@@ -135,4 +136,60 @@ var deleteService = asyncHandler(async (req, res) => {
     }
 })
 
-export { createService, getService, updateService, deleteService };
+const addReview = asyncHandler(async (req, res) => {
+    const { serviceId, rating, comment } = req.body;
+
+    // Validation
+    if (!serviceId) throw new ApiError(400, "Service ID is required");
+    if (!rating || rating < 1 || rating > 5) {
+        throw new ApiError(400, "Rating must be between 1 and 5");
+    }
+
+    const service = await serviceModel.findOne({ serviceId });
+    if (!service) {
+        throw new ApiError(404, "Service not found");
+    }
+
+    // Add the review
+    service.reviews.push({ rating, comment });
+    
+    // Calculate new average rating
+    service.averageRating = calculateAverageRating(service.reviews);
+    
+    const updatedService = await service.save();
+
+    return ApiResponse.success(
+        res, 
+        "Review added successfully", 
+        {
+            reviews: updatedService.reviews,
+            averageRating: updatedService.averageRating
+        }
+    );
+});
+
+const getReviews = asyncHandler(async (req, res) => {
+    const { serviceId } = req.params;
+
+    if (!serviceId) {
+        throw new ApiError(400, "Service ID is required");
+    }
+
+    const service = await serviceModel.findOne({ serviceId });
+    if (!service) {
+        throw new ApiError(404, "Service not found");
+    }
+
+    return ApiResponse.success(
+        res, 
+        "Reviews retrieved successfully", 
+        {
+            reviews: service.reviews,
+            averageRating: service.averageRating
+        }
+    );
+});
+
+
+export { createService, getService, updateService, deleteService, addReview,
+    getReviews};
