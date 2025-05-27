@@ -45,7 +45,19 @@ var bookingSchema = new mongoose.Schema({
         type: Number,
         required: true,
         default: null,
-    }
+    },
+    payment: {
+        razorpayOrderId: String,
+        razorpayPaymentId: String,
+        paymentDate: Date,
+        status: {
+          type: String,
+          enum: ['pending', 'completed', 'failed'],
+          default: 'pending'
+        },
+        amount: Number
+      }
+      
 });
 
 var bookingModel = mongoose.model("Booking" , bookingSchema);
