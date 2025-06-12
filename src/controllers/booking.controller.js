@@ -8,42 +8,58 @@ import { startOtpGeneration , endOtpGeneration} from "../utils/bookingOtpGenerat
 
 var createBooking = asyncHandler(async (req, res) => {
     var userId = req.user.userId;
-    var {category , subcategory , price} = req.body;
+    var { category, subcategory, price, taskmasterId } = req.body;
+
+    if (!userId) {
+    return ApiResponse.error(res, 400, "userId is required");
+    }
+    if (!category) {
+    return ApiResponse.error(res, 400, "category is required");
+    }
+    if (!subcategory) {
+    return ApiResponse.error(res, 400, "subcategory is required");
+    }
+    if (!price) {
+    return ApiResponse.error(res, 400, "price is required");
+    }
+    if (!taskmasterId) {
+    return ApiResponse.error(res, 400, "taskmasterId is required");
+    }
+
+    // Generate unique bookingId and OTPs
     var bookingId = generateUniqueBookingId();
     var bookingDate = new Date();
     var status = "pending";
-    console.log("category" , category);
-    console.log("subcategory" , subcategory);
-    console.log("userId" , userId);
-    if(!userId) {
-        return ApiResponse.error(res, 400 , "userId is required");
-    }
-    if(userId){
 
-        var booking = await bookingModel.findOne({bookingId: bookingId});
-        if(booking){
-            return ApiResponse.error(res, 400 , "Booking already exists");
-        }
-        if(!booking){
-            var newbooking = await bookingModel.create({
-                userId: userId,
-                bookingId: bookingId,
-                bookingDate: bookingDate,
-                status: status,
-                category: category,
-                subCategory: subcategory,
-                startOtp: startOtpGeneration(),
-                endOtp: endOtpGeneration(),
-                price: price
-            })
-            if(newbooking){
-                return ApiResponse.success(res, "booking created successfully", newbooking);
-            }
-            if(!newbooking){
-                return ApiResponse.error(res, 400 , "Booking not created");
-            }
-        }
+    // Check if a booking with the same bookingId already exists
+    var existingBooking = await bookingModel.findOne({ bookingId });
+    if (existingBooking) {
+    return ApiResponse.error(res, 400, "Booking already exists");
     }
+
+    // Create new booking
+    var newBooking = await bookingModel.create({
+    userId,
+    bookingId,
+    bookingDate,
+    status,
+    category,
+    subCategory: subcategory,
+    startOtp: startOtpGeneration(),
+    endOtp: endOtpGeneration(),
+    price,
+    taskmasterId,
+    payment: {
+    status: "pending",
+    amount: price,
+    },
+  });
+
+  if (newBooking) {
+    return ApiResponse.success(res, "Booking created successfully", newBooking);
+  } else {
+    return ApiResponse.error(res, 500, "Failed to create booking");
+  }
 });
 
 var getBooking = asyncHandler(async (req, res) => {

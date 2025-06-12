@@ -8,6 +8,7 @@ import authRoutes from "./src/routes/auth.routes.js";
 import userRoutes from "./src/routes/user.routes.js";
 import bookingRoutes from "./src/routes/booking.routes.js";
 import serviceRoutes from "./src/routes/service.routes.js";
+import reviewRoutes from "./src/routes/review.routes.js";
 dotenv.config({ path: "../.env" });
 
 const app = express();
@@ -30,6 +31,7 @@ app.use('/api/auth', authRoutes);
 app.use("/api/user" , userRoutes);
 app.use("/api/booking" , bookingRoutes);
 app.use("/api/service" , serviceRoutes);
+app.use("/api/review" , reviewRoutes);
 //getSecret("onlyclick-server")
 //  .then((secrets) => {
 //    PORT = secrets.PORT;

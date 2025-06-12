@@ -1,108 +1,8 @@
-# OnlyClick Server
+# OnlyClick Server Documentation
 
-A Node.js/Express.js backend service for a home services marketplace platform. This server handles service bookings, user management, OTP verification, and various home service categories like electrical work, plumbing, cleaning, etc.
+## Overview
 
----
-
-## Table of Contents
-
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Environment Setup](#environment-setup)
-- [Running the Application](#running-the-application)
-- [Docker Setup](#docker-setup)
-- [Project Structure](#project-structure)
-- [Key Components](#key-components)
-- [API Documentation](#api-documentation)
-- [Postman API Collection](#postman-api-collection)
-- [Error Handling](#error-handling)
-- [Logging System](#logging-system)
-- [Dependencies](#dependencies)
-- [Contributing](#contributing)
-- [License](#license)
-
----
-
-## Prerequisites
-
-- Node.js (v23.11.0 or higher)
-- MongoDB
-- Docker (optional, for containerized deployment)
-- npm (Node Package Manager)
-
----
-
-## Installation
-
-1. Clone the repository:
-
-   ```bash
-   git clone <repository-url>
-   cd onlyclick-server
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
----
-
-## Environment Setup
-
-Create a `.env` file in the root directory with the following variables:
-
-```env
-PORT=8000
-ACCESS_TOKEN_SECRET=your_access_token_secret
-REFRESH_TOKEN_SECRET=your_refresh_token_secret
-MONGO_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/<database>
-TWILIO_ACCOUNT_SID=your_twilio_account_sid
-TWILIO_AUTH_TOKEN=your_twilio_auth_token
-TWILIO_SERVICE_SID=your_twilio_service_sid
-enableLogging=true
-serverLogs=./logs/server.log
-errorLogs=./logs/error.log
-```
-
-> **Note:** Replace placeholders with your actual credentials.
-
----
-
-## Running the Application
-
-### Development Mode
-
-```bash
-npm run dev
-```
-
-### Production Mode
-
-```bash
-npm start
-```
-
----
-
-## Docker Setup
-
-1. Build the Docker image:
-
-   ```bash
-   docker build -t onlyclick-server .
-   ```
-
-2. Run the container:
-   ```bash
-   docker run -p 8000:8000 --env-file .env onlyclick-server
-   ```
-
-Or use Docker Compose:
-
-```bash
-docker-compose up
-```
+**OnlyClick Server** is a Node.js/Express.js backend for a home services marketplace. It manages user authentication (OTP-based), service listings, bookings, reviews, and user profiles. The backend uses MongoDB for data storage, Twilio for OTP, and JWT for authentication.
 
 ---
 
@@ -111,398 +11,384 @@ docker-compose up
 ```
 onlyclick-server/
 ├── index.js                  # Main application entry point
+├── dockerfile                # Docker build instructions
+├── package.json              # Project dependencies and scripts
+├── README.md                 # Project documentation
 ├── src/
 │   ├── aws/
 │   │   └── aws-secerets.js   # AWS Secrets Manager integration
-│   ├── controllers/
-│   │   ├── auth.controller.js # Handles OTP and user authentication
-│   │   ├── user.controller.js # Handles user management
-│   │   ├── service.controller.js # Handles service management
-│   │   └── booking.controller.js # Handles booking management
+│   ├── controllers/          # Route controllers (business logic)
 │   ├── database/
-│   │   └── catalog.js        # Database connection setup
+│   │   └── catalog.js        # MongoDB connection logic
 │   ├── middlewares/
 │   │   └── auth.middleware.js # JWT authentication middleware
-│   ├── models/
-│   │   ├── address.model.js  # Address schema
-│   │   ├── users.model.js    # User schema with JWT token generation
-│   │   ├── service.model.js  # Service schema
-│   │   └── booking.model.js  # Booking schema
-│   ├── otp/
-│   │   ├── otp-send.service.js # Sends OTP using Twilio
-│   │   ├── otp-verify.service.js # Verifies OTP using Twilio
-│   │   └── otp.service.js    # Twilio service creation
-│   ├── routes/
-│   │   ├── auth.routes.js    # Authentication routes
-│   │   ├── user.routes.js    # User management routes
-│   │   └── booking.routes.js # Booking management routes
-│   │   ├── service.routes.js # Service management routes
-│   ├── utils/
-│   │   ├── ApiError.js       # Custom error handling
-│   │   ├── ApiResponse.js    # Standardized API responses
-│   │   ├── asyncHandler.js   # Async error handling middleware
-│   │   ├── constants.js      # Application constants
-│   │   ├── logentries.js     # Logging utility
-│   │   ├── bookingIdGeneration.js # Generates unique booking IDs
-│   │   ├── bookingOtpGeneration.js # Generates OTPs for bookings
-│   │   └── userIdGeneration.js # Generates unique user IDs
-├── dockerfile                # Docker configuration
-├── compose.yaml              # Docker Compose configuration
-└── package.json              # Project dependencies
+│   ├── models/               # Mongoose schemas
+│   ├── otp/                  # OTP and JWT services
+│   ├── routes/               # Express route definitions
+│   ├── utils/                # Utility functions and helpers
 ```
 
 ---
 
-## Key Components
+## Environment Variables
 
-### 1. Main Application ([`index.js`](index.js))
+Create a `.env` file in the root directory with:
 
-- Sets up Express server, middleware (CORS, JSON parsing, cookies).
-- Connects to MongoDB using [`src/database/catalog.js`](src/database/catalog.js).
-- Loads secrets from AWS if configured.
-- Root endpoint: `GET /` returns server status.
-
-### 2. User Authentication
-
-- **OTP Sending ([`src/otp/otp-send.service.js`](src/otp/otp-send.service.js))**:
-  - Sends OTP to the user's phone number using Twilio.
-- **OTP Verification ([`src/otp/otp-verify.service.js`](src/otp/otp-verify.service.js))**:
-  - Verifies the OTP and checks if it has already been verified.
-- **JWT Token Generation ([`src/models/users.model.js`](src/models/users.model.js))**:
-  - Generates access and refresh tokens for authenticated users.
-
-### 3. User Management
-
-- **Update User ([`src/controllers/user.controller.js`](src/controllers/user.controller.js))**:
-  - Updates user details like name and phone number.
-- **Update User Address ([`src/controllers/user.controller.js`](src/controllers/user.controller.js))**:
-  - Updates the user's address.
-- **Get User ([`src/controllers/user.controller.js`](src/controllers/user.controller.js))**:
-  - Fetches user details based on the authenticated user's ID.
-
-### 4. Booking Management
-
-- **Create Booking ([`src/controllers/booking.controller.js`](src/controllers/booking.controller.js))**:
-  - Creates a new booking with a unique booking ID and OTPs.
-- **Get Booking ([`src/controllers/booking.controller.js`](src/controllers/booking.controller.js))**:
-  - Fetches all bookings for the authenticated user.
-- **Validate Start OTP ([`src/controllers/booking.controller.js`](src/controllers/booking.controller.js))**:
-  - Validates the start OTP for a booking and updates its status to "confirmed".
-- **Validate End OTP ([`src/controllers/booking.controller.js`](src/controllers/booking.controller.js))**:
-  - Validates the end OTP for a booking and updates its status to "completed".
-
-### 5. Service Management
-
-- **Create Service ([`src/controllers/service.controller.js`](src/controllers/service.controller.js))**:
-  - Creates a service with details such as category, subcategory, price, and duration.
-- **Update Service ([`src/controllers/service.controller.js`](src/controllers/service.controller.js))**:
-  - Updates service details.
-- **Delete Service ([`src/controllers/service.controller.js`](src/controllers/service.controller.js))**:
-  - Deletes a service.
+| Variable                | Description                        |
+|-------------------------|------------------------------------|
+| PORT                    | Server port                        |
+| ACCESS_TOKEN_SECRET     | JWT access token secret            |
+| REFRESH_TOKEN_SECRET    | JWT refresh token secret           |
+| MONGO_URI               | MongoDB connection string          |
+| TWILIO_ACCOUNT_SID      | Twilio account SID                 |
+| TWILIO_AUTH_TOKEN       | Twilio auth token                  |
+| TWILIO_SERVICE_SID      | Twilio Verify service SID          |
+| enableLogging           | Enable/disable file logging        |
+| serverLogs              | Path to server log file            |
+| errorLogs               | Path to error log file             |
 
 ---
 
-## API Documentation
+## Key Modules & Services
 
-### Base URL
+### 1. Main Application (`index.js`)
+- Sets up Express, CORS, cookie parser, and JSON parsing.
+- Loads environment variables.
+- Connects to MongoDB.
+- Registers all API routes.
+- Root endpoint: `GET /` returns `"server"`.
 
-```
-http://localhost:8000
-```
+### 2. AWS Secrets (`src/aws/aws-secerets.js`)
+- Loads secrets from AWS Secrets Manager for secure config.
 
-### Endpoints
+### 3. Database Connection (`src/database/catalog.js`)
+- Connects to MongoDB using Mongoose.
+- Logs connection status.
 
-#### Authentication Routes
+### 4. Middleware
 
-- **Send OTP**:
+#### `auth.middleware.js`
+- Verifies JWT access/refresh tokens.
+- Attaches user object to `req.user` if valid.
+- Returns 401 for missing/invalid/expired tokens.
 
-  - `POST /api/auth/send-otp`
-  - Request Body:
-    ```json
-    {
-      "phoneNumber": "+1234567890"
-    }
-    ```
-  - Response:
-    ```json
-    {
-      "statusCode": 200,
-      "message": "OTP sent successfully"
-    }
-    ```
-
-- **Verify OTP**:
-  - `POST /api/auth/verify-otp`
-  - Request Body:
-    ```json
-    {
-      "phoneNumber": "+1234567890",
-      "code": "123456"
-    }
-    ```
-  - Response (Success):
-    ```json
-    {
-      "statusCode": 200,
-      "message": "Logged in successfully",
-      "data": {
-        "accessToken": "your_access_token",
-        "refreshToken": "your_refresh_token",
-        "user": { ... }
-      }
-    }
-    ```
-
-#### User Routes
-
-- **Get User**:
-
-  - `GET /api/user/get-user`
-  - Requires `Authorization` header with a valid JWT token.
-  - Response:
-    ```json
-    {
-      "statusCode": 200,
-      "message": "User fetched successfully",
-      "user": { ... }
-    }
-    ```
-
-- **Update User**:
-
-  - `PUT /api/user/update-user`
-  - Requires `Authorization` header with a valid JWT token.
-  - Request Body:
-    ```json
-    {
-      "name": "John Doe",
-      "phoneNumber": "+1234567890"
-    }
-    ```
-  - Response:
-    ```json
-    {
-      "statusCode": 200,
-      "message": "User updated successfully",
-      "user": { ... }
-    }
-    ```
-
-- **Update User Address**:
-  - `PUT /api/user/update-user-address`
-  - Requires `Authorization` header with a valid JWT token.
-  - Request Body:
-    ```json
-    {
-      "address1": "123 Main St",
-      "address2": "Apt 4B",
-      "address3": "New York, NY"
-    }
-    ```
-  - Response:
-    ```json
-    {
-      "statusCode": 200,
-      "message": "User address updated successfully",
-      "user": { ... }
-    }
-    ```
-
-#### Service Routes
-
-- **Create Service**:
-
-  - `POST /api/service/create-service`
-  - Request Body:
-    ```json
-    {
-      "category": "Cleaning",
-      "subCategory": "Home Cleaning",
-      "description": "Complete home cleaning service",
-      "price": 1200,
-      "duration": 4
-    }
-    ```
-  - Response:
-    ```json
-    {
-      "statusCode": 200,
-      "message": "Service created successfully",
-      "data": { ... }
-    }
-    ```
-
-- **Get All Services**:
-
-  - `GET /api/service/get-service`
-  - Response:
-    ```json
-    {
-      "statusCode": 200,
-      "message": "Services fetched successfully",
-      "data": [ ... ]
-    }
-    ```
-
-- **Update Service**:
-
-  - `PUT /api/service/update-service`
-  - Request Body:
-    ```json
-    {
-      "serviceId": "12345",
-      "category": "Deep Cleaning",
-      "subCategory": "Home Deep Cleaning",
-      "description": "Complete deep cleaning service",
-      "price": 1500,
-      "duration": 6
-    }
-    ```
-  - Response:
-    ```json
-    {
-      "statusCode": 200,
-      "message": "Service updated successfully",
-      "data": { ... }
-    }
-    ```
-
-- **Delete Service**:
-  - `DELETE /api/service/delete-service`
-  - Request Body:
-    ```json
-    {
-      "serviceId": "12345"
-    }
-    ```
-  - Response:
-    ```json
-    {
-      "statusCode": 200,
-      "message": "Service deleted successfully",
-      "data": { ... }
-    }
-    ```
-
-#### Booking Routes
-
-- **Create Booking**:
-
-  - `POST /api/booking/create-booking`
-  - Request Body:
-    ```json
-    {
-      "category": "Cleaning",
-      "subCategory": "Home Cleaning",
-      "price": 1200
-    }
-    ```
-  - Response:
-    ```json
-    {
-      "statusCode": 201,
-      "message": "Booking created successfully",
-      "data": { ... }
-    }
-    ```
-
-- **Get Booking**:
-
-  - `GET /api/booking/get-booking`
-  - Response:
-    ```json
-    {
-      "statusCode": 200,
-      "message": "Bookings fetched successfully",
-      "data": [ ... ]
-    }
-    ```
-
-- **Validate Start OTP**:
-
-  - `PUT /api/booking/validate-startotp`
-  - Request Body:
-    ```json
-    {
-      "bookingId": "BK12345",
-      "startOtp": "123456"
-    }
-    ```
-  - Response:
-    ```json
-    {
-      "statusCode": 200,
-      "message": "Start OTP validated successfully",
-      "data": { ... }
-    }
-    ```
-
-- **Validate End OTP**:
-  - `PUT /api/booking/validate-endotp`
-  - Request Body:
-    ```json
-    {
-      "bookingId": "BK12345",
-      "endOtp": "654321"
-    }
-    ```
-  - Response:
-    ```json
-    {
-      "statusCode": 200,
-      "message": "End OTP validated successfully",
-      "data": { ... }
-    }
-    ```
+### 5. Utilities (`src/utils/`)
+- **ApiError.js**: Custom error class, logs errors.
+- **ApiResponse.js**: Standardizes API responses.
+- **asyncHandler.js**: Wraps async route handlers for error catching.
+- **logentries.js**: Logging utility (console or file).
+- **constants.js**: Service categories, roles, and enums.
+- **bookingIdGeneration.js**: Generates unique booking IDs.
+- **bookingOtpGeneration.js**: Generates OTPs for bookings.
+- **userIdGeneration.js**: Generates unique user IDs.
+- **servicereview.js**: Calculates average service rating.
 
 ---
 
-## Postman API Collection
+## Database Models
 
-You can use the following Postman collection to test the APIs:
-[OnlyClick API Collection](https://api.postman.com/collections/27936854-d4aeef8a-8342-494c-9905-64c915509a9d?access_key=PMAT-01JVMCWA6A69XYY0P08AZQWB4P)
+### User (`src/models/users.model.js`)
+| Field        | Type     | Description                |
+|--------------|----------|----------------------------|
+| name         | String   | User's name                |
+| userId       | String   | Unique user ID             |
+| phoneNumber  | String   | User's phone number        |
+| roles        | String   | User role (default: user)  |
+| address      | Array    | List of addresses          |
+| email        | String   | User's email               |
+| timestamps   | Date     | Created/updated at         |
+
+- **Methods**: `generateAccessToken()`, `generateRefreshToken()`
+
+### Address (`src/models/address.model.js`)
+| Field     | Type   | Description         |
+|-----------|--------|---------------------|
+| address1  | String | Required            |
+| address2  | String | Optional            |
+| address3  | String | Optional            |
+
+### Service (`src/models/service.model.js`)
+| Field         | Type     | Description                |
+|---------------|----------|----------------------------|
+| serviceId     | String   | Unique service ID          |
+| category      | String   | Service category           |
+| subCategory   | String   | Service subcategory        |
+| description   | String   | Service description        |
+| price         | Number   | Service price              |
+| duration      | Number   | Duration in hours          |
+| reviews       | Array    | List of reviews            |
+| averageRating | Number   | Average rating (1-5)       |
+
+### Booking (`src/models/booking.model.js`)
+| Field         | Type     | Description                |
+|---------------|----------|----------------------------|
+| userId        | String   | User who booked            |
+| bookingId     | String   | Unique booking ID          |
+| bookingDate   | Date     | Date of booking            |
+| status        | String   | pending/confirmed/cancelled|
+| startOtp      | String   | OTP for start              |
+| endOtp        | String   | OTP for end                |
+| category      | String   | Service category           |
+| subCategory   | String   | Service subcategory        |
+| price         | Number   | Price                      |
+| taskmasterId  | String   | Assigned worker            |
+| payment       | Object   | Payment status/amount      |
+
+### Review (`src/models/review.model.js`)
+| Field     | Type   | Description         |
+|-----------|--------|---------------------|
+| userId    | String | Reviewer            |
+| bookingId | String | Booking reviewed    |
+| rating    | Number | 1-5                 |
+| comment   | String | Review text         |
+| createdAt | Date   | Date of review      |
+
+---
+
+## API Endpoints
+
+### Authentication
+
+#### 1. Send OTP
+- **POST** `/api/auth/send-otp`
+- **Body**: `{ "phoneNumber": "+1234567890" }`
+- **Response**:
+  - 200: `{ "statusCode": 200, "message": "OTP sent successfully" }`
+  - 400: `{ "statusCode": 400, "message": "Phone number is required" }`
+- **Edge Cases**: Phone number missing/invalid.
+- **Middleware**: None.
+
+#### 2. Verify OTP
+- **POST** `/api/auth/verify-otp`
+- **Body**: `{ "phoneNumber": "+1234567890", "code": "123456" }`
+- **Response**:
+  - 200: `{ "statusCode": 200, "message": "Logged in successfully", "data": { "accessToken": "...", "refreshToken": "...", "user": {...}, "accessTokenExpiry": "...", "refreshTokenExpiry": "..." } }`
+  - 400: `{ "statusCode": 400, "message": "Invalid or expired OTP" }`
+- **Edge Cases**: OTP expired, wrong code, phone not found.
+- **Middleware**: None.
+
+---
+
+### User
+
+#### 1. Get User
+- **GET** `/api/user/get-user`
+- **Headers**: `Authorization: Bearer <accessToken>`
+- **Response**:
+  - 200: `{ "statusCode": 200, "message": "User fetched successfully", "user": {...} }`
+  - 400/404: User not found or token invalid.
+- **Middleware**: `authenticateUser`
+
+#### 2. Update User
+- **PUT** `/api/user/update-user`
+- **Headers**: `Authorization: Bearer <accessToken>`
+- **Body**: `{ "name": "John", "phoneNumber": "+1234567890", "email": "john@example.com" }`
+- **Response**:
+  - 200: `{ "statusCode": 200, "message": "User updated successfully", "user": {...} }`
+  - 400: Missing fields.
+  - 404: User not found.
+- **Middleware**: `authenticateUser`
+
+#### 3. Update User Address
+- **PUT** `/api/user/update-user-address`
+- **Headers**: `Authorization: Bearer <accessToken>`
+- **Body**: `{ "address1": "...", "address2": "...", "address3": "..." }`
+- **Response**:
+  - 200: `{ "statusCode": 200, "message": "User address updated successfully", "user": {...} }`
+  - 400: Missing address.
+  - 404: User not found.
+- **Middleware**: `authenticateUser`
+
+---
+
+### Service
+
+#### 1. Create Service
+- **POST** `/api/service/create-service`
+- **Body**: `{ "serviceId": "...", "category": "...", "subCategory": "...", "description": "...", "price": 100, "duration": 2 }`
+- **Response**:
+  - 200: `{ "statusCode": 200, "message": "Service created successfully", "data": {...} }`
+  - 400: Missing/duplicate fields.
+- **Middleware**: None.
+
+#### 2. Get All Services
+- **GET** `/api/service/get-service`
+- **Response**:
+  - 200: `{ "statusCode": 200, "message": "Service fetched successfully", "data": [...] }`
+  - 404: Not found.
+- **Middleware**: None.
+
+#### 3. Update Service
+- **PUT** `/api/service/update-service`
+- **Body**: `{ "serviceId": "...", "category": "...", "subCategory": "...", "description": "...", "price": 100, "duration": 2 }`
+- **Response**:
+  - 200: `{ "statusCode": 200, "message": "Service updated successfully", "data": {...} }`
+  - 400/404: Missing fields or not found.
+- **Middleware**: None.
+
+#### 4. Delete Service
+- **DELETE** `/api/service/delete-service`
+- **Body**: `{ "serviceId": "..." }`
+- **Response**:
+  - 200: `{ "statusCode": 200, "message": "Service deleted successfully", "data": {...} }`
+  - 400/404: Missing or not found.
+- **Middleware**: None.
+
+#### 5. Add Review
+- **POST** `/api/service/add-review`
+- **Body**: `{ "serviceId": "...", "rating": 5, "comment": "Great!" }`
+- **Response**:
+  - 200: `{ "statusCode": 200, "message": "Review added successfully", "reviews": [...], "averageRating": 4.5 }`
+  - 400/404: Validation errors.
+- **Middleware**: None.
+
+#### 6. Get Reviews
+- **GET** `/api/service/:serviceId/reviews`
+- **Response**:
+  - 200: `{ "statusCode": 200, "message": "Reviews retrieved successfully", "reviews": [...], "averageRating": 4.5 }`
+  - 400/404: Validation errors.
+- **Middleware**: None.
+
+---
+
+### Booking
+
+#### 1. Create Booking
+- **POST** `/api/booking/create-booking`
+- **Headers**: `Authorization: Bearer <accessToken>`
+- **Body**: `{ "category": "...", "subcategory": "...", "price": 100, "taskmasterId": "..." }`
+- **Response**:
+  - 200: `{ "statusCode": 200, "message": "Booking created successfully", "data": {...} }`
+  - 400: Missing fields.
+- **Middleware**: `authenticateUser`
+
+#### 2. Get Booking
+- **GET** `/api/booking/get-booking`
+- **Headers**: `Authorization: Bearer <accessToken>`
+- **Response**:
+  - 200: `{ "statusCode": 200, "message": "Booking fetched successfully", "data": [...] }`
+  - 400/404: Not found.
+- **Middleware**: `authenticateUser`
+
+#### 3. Validate Start OTP
+- **PUT** `/api/booking/validate-startotp`
+- **Headers**: `Authorization: Bearer <accessToken>`
+- **Body**: `{ "bookingId": "...", "startOtp": "123456" }`
+- **Response**:
+  - 200: `{ "statusCode": 200, "message": "Start OTP verified successfully", "data": {...} }`
+  - 400/404: Invalid OTP or not found.
+- **Middleware**: `authenticateUser`
+
+#### 4. Validate End OTP
+- **PUT** `/api/booking/validate-endotp`
+- **Headers**: `Authorization: Bearer <accessToken>`
+- **Body**: `{ "bookingId": "...", "endOtp": "654321" }`
+- **Response**:
+  - 200: `{ "statusCode": 200, "message": "End OTP verified successfully", "data": {...} }`
+  - 400/404: Invalid OTP or not found.
+- **Middleware**: `authenticateUser`
+
+---
+
+### Review
+
+#### 1. Create Review
+- **POST** `/api/review/create-review`
+- **Headers**: `Authorization: Bearer <accessToken>`
+- **Body**: `{ "bookingId": "...", "rating": 5, "comment": "Great!" }`
+- **Response**:
+  - 200: `{ "statusCode": 200, "message": "Review created successfully", "data": {...} }`
+  - 400: Missing fields or duplicate review.
+- **Middleware**: `authenticateUser`
+
+#### 2. Get User Reviews
+- **GET** `/api/review/get-user-reviews`
+- **Headers**: `Authorization: Bearer <accessToken>`
+- **Response**:
+  - 200: `{ "statusCode": 200, "message": "Reviews fetched successfully", "data": [...] }`
+- **Middleware**: `authenticateUser`
+
+#### 3. Get All Reviews
+- **GET** `/api/review/get-all-reviews`
+- **Response**:
+  - 200: `{ "statusCode": 200, "message": "All reviews fetched successfully", "data": [...] }`
+- **Middleware**: None.
+
+#### 4. Update Review
+- **PUT** `/api/review/update-review`
+- **Headers**: `Authorization: Bearer <accessToken>`
+- **Body**: `{ "reviewId": "...", "rating": 4, "comment": "Updated comment" }`
+- **Response**:
+  - 200: `{ "statusCode": 200, "message": "Review updated successfully", "data": {...} }`
+  - 400/404: Missing fields or not found.
+- **Middleware**: `authenticateUser`
+
+#### 5. Delete Review
+- **DELETE** `/api/review/delete-review`
+- **Headers**: `Authorization: Bearer <accessToken>`
+- **Body**: `{ "reviewId": "..." }`
+- **Response**:
+  - 200: `{ "statusCode": 200, "message": "Review deleted successfully" }`
+  - 400/404: Missing fields or not found.
+- **Middleware**: `authenticateUser`
 
 ---
 
 ## Error Handling
 
-- Uses [`ApiError`](src/utils/ApiError.js) for custom errors and logging.
-- [`asyncHandler`](src/utils/asyncHandler.js) wraps async routes for consistent error responses.
+- **ApiError**: Custom error class, logs errors and returns status code/message.
+- **ApiResponse**: Standardizes all API responses for success and error.
+- **asyncHandler**: Catches async errors and returns a 510 error for unhandled exceptions.
+- **Validation**: All endpoints validate required fields and return 400 for missing/invalid input.
+- **JWT Errors**: 401 for missing/invalid/expired tokens.
 
 ---
 
-## Logging System
+## Third-Party Libraries
 
-- Logs are written to files if `enableLogging=true`, otherwise to console.
+- **express**: Web framework
+- **mongoose**: MongoDB ODM
+- **cors**: CORS middleware
+- **cookie-parser**: Cookie parsing
+- **jsonwebtoken**: JWT authentication
+- **dotenv**: Loads environment variables
+- **twilio**: SMS/OTP sending
+- **@aws-sdk/client-secrets-manager**: AWS Secrets Manager integration
+
+---
+
+## Deployment & Dev Scripts
+
+- **Dev**: `npm run dev` (nodemon)
+- **Prod**: `npm start`
+- **Docker**: Build with `docker build -t onlyclick-server .` and run with `docker run -p 8000:8000 --env-file .env onlyclick-server`
+- **CI/CD**: GitHub Actions workflows for build and deploy (`.github/workflows/ci.yml`, `.github/workflows/cd.yml`)
+
+---
+
+## Testing
+
+- No automated tests are present in the codebase.
+- Manual testing can be done using the provided [Postman Collection](https://api.postman.com/collections/27936854-d4aeef8a-8342-494c-9905-64c915509a9d?access_key=PMAT-01JVMCWA6A69XYY0P08AZQWB4P).
+
+---
+
+## Edge Cases & Input Validation
+
+- All endpoints validate required fields and types.
+- All authentication-protected routes require a valid JWT.
+- OTP endpoints handle expired/invalid codes.
+- Booking and service creation check for duplicates.
+- Review creation checks for duplicates per booking/user.
+
+---
+
+## Logging
+
+- Logs to file if `enableLogging=true`, otherwise logs to console.
 - Log format: `[Timestamp] - [Category]: [Message]`
-- IST timezone is used for all timestamps.
-- Log files are specified by `serverLogs` and `errorLogs` in `.env`.
+- Log files: `serverLogs`, `errorLogs` (set in `.env`)
 
 ---
 
-## Dependencies
-
-- express: Web framework
-- mongoose: MongoDB ODM
-- cors: Cross-Origin Resource Sharing
-- cookie-parser: Cookie parsing middleware
-- jsonwebtoken: JWT authentication
-- dotenv: Environment variable management
-- twilio: Twilio API integration
-- @aws-sdk/client-secrets-manager: AWS Secrets Manager integration
-
----
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
----
-
-## License
-
-ISC
+For any further details, see the inline comments in each file or reach out to the project maintainers.

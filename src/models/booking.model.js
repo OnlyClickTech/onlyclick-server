@@ -46,10 +46,12 @@ var bookingSchema = new mongoose.Schema({
         required: true,
         default: null,
     },
+    taskmasterId : {
+        type: String,
+        required: true,
+        default: null,
+    },
     payment: {
-        razorpayOrderId: String,
-        razorpayPaymentId: String,
-        paymentDate: Date,
         status: {
           type: String,
           enum: ['pending', 'completed', 'failed'],
